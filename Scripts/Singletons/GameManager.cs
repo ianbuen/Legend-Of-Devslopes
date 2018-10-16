@@ -110,11 +110,20 @@ public class GameManager : Singleton<GameManager> {
             currentPowerUpSpawnTime = 0;
 
             if (numberOfPowerUps < maxPowerUps) {
-                Vector3 spawnPoint = powerUpSpawns[Random.Range(0, powerUpSpawns.Length)].position;
+                // get random of the two spots
+                Transform spawnArea = powerUpSpawns[Random.Range(0, powerUpSpawns.Length)];
+
+                // choose a random point from the bounds of the area
+                // will use a box collider for this 'bounds'
+                BoxCollider box = spawnArea.gameObject.GetComponent<BoxCollider>();
+                Vector3 spawnPoint = new Vector3(Random.Range(box.bounds.min.x, box.bounds.max.x), spawnArea.position.y, Random.Range(box.bounds.min.z, box.bounds.max.z));
+
+                // select a random powerup to spawn
                 GameObject powerUpToSpawn = powerUps[Random.Range(0, powerUps.Length)];
+
                 Instantiate(powerUpToSpawn);
                 numberOfPowerUps++;
-                powerUpToSpawn.transform.position = new Vector3(spawnPoint.x, 0.75f, spawnPoint.z);
+                powerUpToSpawn.transform.position = new Vector3(spawnPoint.x, spawnPoint.y, spawnPoint.z);
             }
         }
 

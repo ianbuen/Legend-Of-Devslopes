@@ -27,9 +27,7 @@ public class Enemy : MonoBehaviour {
 
             if(!GameManager.Instance.GameOver) {
 
-                if (enemyAttack.PlayerInRange && enemyAttack.Attacking) {
-                    Quaternion rotation = Quaternion.LookRotation(target.position - transform.position);
-                    transform.rotation = Quaternion.Lerp(transform.rotation, rotation, Time.deltaTime * 10f);
+                if (enemyAttack.PlayerInRange) {
                     navMeshAgent.enabled = false;
                     animator.SetBool("Running", false);
                 } else {

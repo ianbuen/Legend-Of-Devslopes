@@ -7,25 +7,25 @@ public class PlayerController : MonoBehaviour {
     [SerializeField] private float moveSpeed = 5f;
     [SerializeField] private float jumpForce = 5f;
     private Animator animator;
-    private Animation animation;
     private CharacterController charController;
     private BoxCollider[] weaponColliders;
+    private GameObject wildFire;
 
-    private Vector3 moveDirection = Vector3.zero;
     private float origSpeed;
 
-	// Use this for initialization
-	void Start () {
+    // Use this for initialization
+    void Start() {
         charController = GetComponent<CharacterController>();
         weaponColliders = GetComponentsInChildren<BoxCollider>();
+        wildFire = GameObject.FindGameObjectWithTag("Fire");
         animator = GetComponent<Animator>();
-        animation = GetComponent<Animation>();
 
+        wildFire.SetActive(false);
         origSpeed = moveSpeed;
-	}
-	
-	// Update is called once per frame
-	void Update () {
+    }
+
+    // Update is called once per frame
+    void Update() {
 
         if (!GameManager.Instance.GameOver) {
 
@@ -36,39 +36,18 @@ public class PlayerController : MonoBehaviour {
             }
 
             Vector3 moveDirection = new Vector3(Input.GetAxis("Horizontal"), 0, Input.GetAxis("Vertical"));
-            charController.SimpleMove(moveDirection * moveSpeed);
+            charController.SimpleMove(moveDirection.normalized * moveSpeed);
 
             if (moveDirection == Vector3.zero) {
                 animator.SetBool("IsRunning", false);
             } else {
                 animator.SetBool("IsRunning", true);
-
-                /*
-                if (Input.GetKey(KeyCode.LeftShift)) {
-                    animator.SetBool("IsRunning", true);
-                    moveSpeed = origSpeed * 1.25f; // run = +25% move speed
-                } else {
-                    animator.SetBool("IsRunning", false);
-                    moveSpeed = origSpeed;
-                }*/
-            }
-        }
-        
-    }
-
-    // Must use when dealing with game physics
-    void FixedUpdate() {
-
-        if (!GameManager.Instance.GameOver) {
-
-            moveDirection = new Vector3(Input.GetAxis("Horizontal"), 0, Input.GetAxis("Vertical"));
-
-            if (moveDirection != Vector3.zero) {
                 Vector3 targetPosition = new Vector3(transform.position.x - moveDirection.x, transform.position.y, transform.position.z - moveDirection.z);
                 Quaternion rotation = Quaternion.LookRotation(transform.position - targetPosition);
                 transform.rotation = Quaternion.Lerp(transform.rotation, rotation, Time.deltaTime * 10f);
             }
         }
+
     }
 
     public void PlayerBeginAttack() {
@@ -81,5 +60,23 @@ public class PlayerController : MonoBehaviour {
         foreach (var weapon in weaponColliders) {
             weapon.enabled = false;
         }
+    }
+
+    public void SetSpeed(float speedAmount) {
+        moveSpeed = origSpeed * (1 + speedAmount);
+        StartCoroutine(GetLit());
+    }
+
+    IEnumerator GetLit() {
+        wildFire.SetActive(true);
+        animator.speed = 1.5f;
+        yield return new WaitForSeconds(10f);
+        animator.speed = 1;
+        moveSpeed = origSpeed;
+        var emission = wildFire.GetComponent<ParticleSystem>().emission;
+        emission.enabled = false;
+        yield return new WaitForSeconds(3f);
+        emission.enabled = true;
+        wildFire.SetActive(false);
     }
 }

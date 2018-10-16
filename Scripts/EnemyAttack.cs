@@ -3,18 +3,18 @@ using UnityEngine;
 
 public class EnemyAttack : MonoBehaviour {
 
-    [SerializeField] private float attackRange = 3f;
-    [SerializeField] private float timeBetweenAttacks = 1f;
+    [SerializeField] protected float attackRange = 3f;
+    [SerializeField] protected float timeBetweenAttacks = 1f;
 
-    private Animator animator;
-    private GameObject player;
+    protected Animator animator;
+    protected GameObject player;
 
     public bool PlayerInRange { get; private set; }
     public bool Attacking { get; private set; }
 
     private BoxCollider[] weaponColliders;
 
-    private EnemyHealth enemyHealth;
+    protected EnemyHealth enemyHealth;
 
 	// Use this for initialization
 	void Start () {
@@ -30,10 +30,17 @@ public class EnemyAttack : MonoBehaviour {
 
         PlayerInRange = false;
 
-        if (enemyHealth.IsAlive)
-            // if player is in range
-            if (Vector3.Distance(transform.position, player.transform.position) < attackRange)
-                PlayerInRange = true;
+        if (enemyHealth.IsAlive && Vector3.Distance(transform.position, player.transform.position) < attackRange) {
+            // Rotate towards target
+            Vector3 lookPosition = player.transform.position - transform.position;
+            lookPosition.y = 0;
+            Quaternion rotation = Quaternion.LookRotation(lookPosition.normalized);
+            transform.rotation = Quaternion.Slerp(transform.rotation, rotation, Time.deltaTime * 10f);
+            // Finish rotating
+
+            PlayerInRange = true;
+        }
+
 	}
 
     IEnumerator Attack() {
